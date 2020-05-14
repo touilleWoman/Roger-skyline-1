@@ -51,3 +51,13 @@ sudo iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP
 sudo iptables -A FORWARD -p tcp --syn -m limit --limit 1/second -j ACCEPT
 #sudo iptables -A FORWARD -p udp -m limit --limit 1/second -j ACCEPT
 sudo iptables -A FORWARD -p icmp --icmp-type echo-request -m limit --limit 1/second -j ACCEPT
+
+echo "protection anti brut force ssh"
+sudo iptables -A INPUT -p tcp --dport 2222 -m conntrack --ctstate NEW -m recent --set
+sudo iptables -A INPUT -p tcp --dport 2222 -m conntrack --ctstate NEW -m recent --update --seconds 3 --hitcount 2 -j DROP
+
+echo "protections anti-scan"
+sudo iptables -N port-scanning
+sudo iptables -A port-scanning -p tcp --tcp-flags SYN,ACK,FIN,RST RST\
+		 -m limit --limit 1/s --limit-burst 2 -j RETURN
+sudo iptables -A port-scanning -j DROP
